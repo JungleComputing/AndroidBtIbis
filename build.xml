@@ -1,0 +1,75 @@
+<project name="AndroidBtIbis" default="build" basedir=".">
+
+    <description>
+	Build file for AndroidBtIbis
+    </description>
+
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="lib" />
+    <property name="doc" location="doc" />
+    <property name="external" location="external" />
+    <property name="jar" location="${lib}/AndroidBtIbis.jar" />
+
+    <property name="java.debug.value" value="true" />
+
+    <path id="external_jars">
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <target name="init">
+	<!-- Create the time stamp -->
+	<tstamp />
+
+	<!-- Create the build directory structure used by compile -->
+	<mkdir dir="${tmp}" />
+	<mkdir dir="${lib}/include" />
+    </target>
+
+    <target name="compile" depends="init" description="compile the source ">
+	<!-- Compile the java code from ${src} into ${tmp} -->
+	<javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5">
+	    <classpath refid="external_jars" />
+	</javac>
+    </target>
+
+    <target name="build" depends="compile" description="build the JAR file">
+
+	<property name="androidbt.files"
+	    value="ibis/ipl/impl/androidbt/**/*.class"
+	/>
+
+	<checksum totalproperty="androidbt.checksum">
+	    <fileset dir="${tmp}" includes="${androidbt.files}" />
+	</checksum>
+
+	<!-- Create the distribution directory -->
+	<mkdir dir="${lib}" />
+
+	<!-- Put everything in ${tmp} into the jar file -->
+	<jar destfile="${jar}">
+	    <fileset dir="${tmp}" includes="${androidbt.files}" />
+	    <manifest>
+		<attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.androidbt.AndroidBtIbisStarter"/>
+		<attribute name="Ibis-IPL-Version" value="2.2"/>
+		<attribute name="Ibis-NickName" value="androidBt"/>
+		<attribute name="Ibis-Implementation-Version" value="${mpi.checksum}" />
+	    </manifest>
+	</jar>
+
+	<!-- And delete the build dir -->
+	<delete dir="${tmp}" />
+    </target>
+
+    <target name="dist" depends="build" description="build the JAR file" />
+
+    <target name="clean" description="clean up">
+	<delete dir="${tmp}"/>
+	<delete dir="${lib}"/>
+    </target>
+
+    <target name="distclean" depends="clean" description="clean up">
+    </target>
+</project>
