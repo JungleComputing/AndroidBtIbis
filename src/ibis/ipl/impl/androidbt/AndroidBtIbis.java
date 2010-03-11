@@ -1,6 +1,6 @@
 /* $Id: BtIbis.java 11529 2009-11-18 15:53:11Z ceriel $ */
 
-package ibis.ipl.impl.androidbtibis;
+package ibis.ipl.impl.androidbt;
 
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;

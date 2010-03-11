@@ -1,4 +1,4 @@
-package ibis.ipl.impl.androidbtibis;
+package ibis.ipl.impl.androidbt;
 
 import ibis.ipl.IbisProperties;
 

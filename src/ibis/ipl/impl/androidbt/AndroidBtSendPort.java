@@ -1,6 +1,6 @@
 /* $Id: BtSendPort.java 11858 2010-03-10 10:39:00Z ceriel $ */
 
-package ibis.ipl.impl.androidbtibis;
+package ibis.ipl.impl.androidbt;
 
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
