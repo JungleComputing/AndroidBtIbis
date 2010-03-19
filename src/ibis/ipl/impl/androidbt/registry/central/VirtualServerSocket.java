@@ -1,42 +1,34 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
+import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
+
 import java.io.IOException;
 
+import android.bluetooth.BluetoothAdapter;
+
 public class VirtualServerSocket {
-    // private final String myServiceUUID = "2d26618601fb47c28d9f10b8ec891363";
-    // private final UUID MYSERVICEUUID_UUID = new UUID(myServiceUUID, false);
-    // private LocalDevice localDevice; // local Bluetooth Manager
-    // Define the server connection URL
-    private String connURL;
-    private String openURL;
+    
+    private final AndroidBtServerSocket serverSocket;
+    private final VirtualSocketAddress address;
+    
+    public VirtualServerSocket(VirtualSocketAddress addr) throws IOException {
+        this.address = addr;
+        serverSocket = new AndroidBtServerSocket(BluetoothAdapter.getDefaultAdapter(), addr.getUUID());
+    }
+    
+    AndroidBtServerSocket getServerSocket() {
+        return serverSocket;
+    }
 
-    StreamConnectionNotifier streamConnNotifier;
-
-    public VirtualServerSocket(VirtualSocketAddress addr, boolean master) {
-        openURL = addr.toString();
-        try {
-            openURL = "btspp://localhost:" + addr.toString()
-                    + ";name=IbisRegistry;master=" + master;
-            System.out.println("Opening openURL " + openURL);
-            streamConnNotifier = (StreamConnectionNotifier) Connector
-                    .open(openURL);
-            connURL = LocalDevice.getLocalDevice()
-                    .getRecord(streamConnNotifier).getConnectionURL(0, false);
-        } catch (Exception e) {
-            // TODO: something...
-            e.printStackTrace();
-        }
+    public void addLocalConnection(Connection sckt) {
+        serverSocket.addLocalConnection(sckt.getSocket());
     }
 
     public void close() throws IOException {
-        streamConnNotifier.close();
+        serverSocket.close();
     }
 
     public VirtualSocketAddress getLocalSocketAddress() {
-        return new VirtualSocketAddress(connURL);
-    }
-
-    public StreamConnection accept() throws IOException {
-        return streamConnNotifier.acceptAndOpen();
+        return address;
     }
 }

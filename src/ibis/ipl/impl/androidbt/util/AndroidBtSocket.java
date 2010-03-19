@@ -1,4 +1,4 @@
-package ibis.ipl.impl.androidbt;
+package ibis.ipl.impl.androidbt.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
 
-class AndroidBtSocket {
+public class AndroidBtSocket {
     private BluetoothSocket socket;
     OutputStream ostream;
     InputStream istream;
@@ -19,9 +19,9 @@ class AndroidBtSocket {
      * @param addr address of ibis to connect to.
      * @throws IOException
      */
-    AndroidBtSocket(BluetoothAdapter bt, AndroidBtSocketAddress addr) throws IOException {
-        socket = bt.getRemoteDevice(addr.toString()).createRfcommSocketToServiceRecord(
-                AndroidBtServerSocket.MYSERVICEUUID);
+    public AndroidBtSocket(BluetoothAdapter bt, AndroidBtSocketAddress addr) throws IOException {
+        socket = bt.getRemoteDevice(addr.getAddress()).createRfcommSocketToServiceRecord(
+                addr.getUUID());
         bt.cancelDiscovery();   // Should, according to docs, always be called before
                                 // attempting to connect.
         socket.connect();
@@ -35,7 +35,7 @@ class AndroidBtSocket {
      * 
      * @param sckt the bluetooth socket resulting from the accept.
      */
-    AndroidBtSocket(BluetoothSocket sckt) {
+    public AndroidBtSocket(BluetoothSocket sckt) {
         socket = sckt;
         try {
             istream = socket.getInputStream(); 
@@ -52,21 +52,21 @@ class AndroidBtSocket {
      * @param in        the input stream of the socket
      * @param out       the output stream of the socket
      */
-    AndroidBtSocket(InputStream in, OutputStream out) {
+    public AndroidBtSocket(InputStream in, OutputStream out) {
         istream = in;
         ostream = out;
         socket = null;
     }
 
-    OutputStream getOutputStream() {
+    public OutputStream getOutputStream() {
         return ostream;
     }
 
-    InputStream getInputStream() {
+    public InputStream getInputStream() {
         return istream;
     }
 
-    void close() {
+    public void close() {
         try {
             ostream.flush();
         } catch(Throwable e) {

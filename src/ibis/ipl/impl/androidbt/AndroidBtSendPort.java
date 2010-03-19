@@ -14,6 +14,7 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.WriteMessage;
+import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 
 import java.io.IOException;
 import java.io.OutputStream;

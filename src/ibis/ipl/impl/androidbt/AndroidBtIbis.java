@@ -22,6 +22,9 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
+import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
+import ibis.ipl.impl.androidbt.util.AndroidBtSocketAddress;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -130,7 +133,7 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
             try {
                 // Some special casing for local connections, which are not supported
                 // by bluetooth. So, we set up a two-way connection using Piped streams.
-                if (bt.getAddress().equals(idAddr.toString())) {
+                if (bt.getAddress().equals(idAddr.getAddress())) {
                     // Set up piped streams:
                     PipedInputStream in1 = new PipedInputStream();
                     PipedInputStream in2 = new PipedInputStream();

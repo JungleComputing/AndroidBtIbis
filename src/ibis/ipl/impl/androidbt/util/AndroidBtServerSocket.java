@@ -1,4 +1,4 @@
-package ibis.ipl.impl.androidbt;
+package ibis.ipl.impl.androidbt.util;
 
 import ibis.util.ThreadPool;
 
@@ -12,11 +12,8 @@ import android.bluetooth.BluetoothSocket;
 /**
  * Bluetooth accept server socket.
  */
-class AndroidBtServerSocket implements Runnable {
-    // Should we have a fixed UUID??? Or generate it and make it part of the
-    // AndroidBtSocketAddress???
-    static final UUID MYSERVICEUUID = new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
-    
+public class AndroidBtServerSocket implements Runnable {
+
     private final BluetoothAdapter localDevice; // local Bluetooth Manager
     private final BluetoothServerSocket serverSocket;
     
@@ -28,16 +25,21 @@ class AndroidBtServerSocket implements Runnable {
     
     private final AndroidBtSocketAddress myAddress;
 
-    AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
-        myAddress = new AndroidBtSocketAddress(local.getAddress());
+    public AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
+             // new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
+        this(local, UUID.randomUUID());
+    }
+    
+    public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID) throws IOException {
+        myAddress = new AndroidBtSocketAddress(local.getAddress(), myUUID);
         localDevice = local;
-        serverSocket = localDevice.listenUsingRfcommWithServiceRecord("AndroidBtIbis", MYSERVICEUUID);
+        serverSocket = localDevice.listenUsingRfcommWithServiceRecord("AndroidBtIbis", myUUID);
 
         // Create a new accept thread
         ThreadPool.createNew(this, "Bluetooth Accept Thread");
     }
 
-    synchronized AndroidBtSocket accept() throws IOException {
+    public synchronized AndroidBtSocket accept() throws IOException {
         while (socket == null && ! closed) {
             try {
                 wait();
@@ -59,17 +61,17 @@ class AndroidBtServerSocket implements Runnable {
         return sock;   
     }
     
-    AndroidBtSocketAddress getLocalSocketAddress() {
+    public AndroidBtSocketAddress getLocalSocketAddress() {
     	return myAddress;
     }
 
-    synchronized void close() throws java.io.IOException {
+    public synchronized void close() throws java.io.IOException {
         closed = true;
         serverSocket.close();
         notifyAll();
     }
     
-    synchronized void addLocalConnection(AndroidBtSocket sckt) {
+    public synchronized void addLocalConnection(AndroidBtSocket sckt) {
         while (socket == null) {
             try {
                 wait();

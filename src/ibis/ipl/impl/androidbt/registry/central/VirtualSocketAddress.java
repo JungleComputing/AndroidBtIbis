@@ -1,38 +1,26 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
+import ibis.ipl.impl.androidbt.util.AndroidBtSocketAddress;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.util.UUID;
 
-public class VirtualSocketAddress {
-
-    String address;
-    UUID uuid;
+public class VirtualSocketAddress extends AndroidBtSocketAddress {
 
     public VirtualSocketAddress(String addr, UUID uuid) {
-        address = addr;
-        this.uuid = uuid;
+        super(addr, uuid);
     }
-
-    public String toString() {
-        return address;
-    }
-
-    public byte[] toBytes() {
-        return address.getBytes();
-    }
-
-    public boolean equals(Object other) {
-        if (other.getClass() == this.getClass())
-            return address.equals(((VirtualSocketAddress) other).toString());
-        else
-            return false;
-    }
-
-    static public VirtualSocketAddress fromBytes(byte[] source, int offset) {
-        // TODO: not sure...
-        return new VirtualSocketAddress(new String(source));
-    }
-
-    public UUID getUUID() {
-        return uuid;
+ 
+    static public VirtualSocketAddress fromBytes(byte[] source) {
+        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(source));
+        try {
+            String addr = dis.readUTF();
+            UUID uuid = UUID.fromString(dis.readUTF());
+            return new VirtualSocketAddress(addr, uuid);
+        } catch(Exception e) {
+            // Should not happen.
+            return null;
+        }
     }
 }

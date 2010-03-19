@@ -13,6 +13,7 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;

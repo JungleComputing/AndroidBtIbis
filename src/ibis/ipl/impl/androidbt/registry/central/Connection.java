@@ -1,6 +1,7 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import ibis.ipl.support.CountInputStream;
 
 import java.io.BufferedInputStream;
@@ -14,126 +15,62 @@ import org.slf4j.LoggerFactory;
 
 import android.bluetooth.BluetoothAdapter;
 
-public final class Connection {
+public class Connection {
 
     private static final Logger logger = LoggerFactory
             .getLogger(Connection.class);
-    // private final VirtualSocket socket;
 
-    private BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();
-    
-    private String addr;
+    private BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();  
+    private VirtualSocketAddress addr;
     private final DataOutputStream out;
-
     private final DataInputStream in;
     private final CountInputStream counter;
+    
+    private final AndroidBtSocket socket;
+    
+    public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
+            VirtualSocketFactory factory, int port) throws IOException {
+        this(VirtualSocketAddress.fromBytes(ibis.getRegistryData()),
+                timeout, fillTimeout);
+    }
+    
+    public Connection(VirtualSocketAddress serverAddress, int timeout,
+            boolean b, VirtualSocketFactory virtualSocketFactory) throws IOException {
+        this(serverAddress, timeout, b);
+    }
+
+    private Connection(VirtualSocketAddress address, int timeout,
+            boolean fillTimeout) throws IOException {
+        
+        addr = address;
+        if (logger.isDebugEnabled()) {
+            logger.debug("connecting to " + address + ", timeout = " + timeout
+                    + " , filltimeout = " + fillTimeout);
+        }
+        
+        socket = new AndroidBtSocket(bt, address); 
+
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream()));
+        in = new DataInputStream(counter);
+
+        logger.debug("connection to " + address + " established");
+    }
+
+    public Connection(VirtualServerSocket serverSocket) throws IOException {        
+        socket = serverSocket.getServerSocket().accept();
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream()));
+        in = new DataInputStream(counter);
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+
+    }
 
     static final byte REPLY_ERROR = 2;
 
     static final byte REPLY_OK = 1;
 
-    public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
-            VirtualSocketFactory factory, int port) throws IOException {
-        this(VirtualSocketAddress.fromBytes(ibis.getRegistryData(), 0),
-                timeout, fillTimeout);
-    }
-
-    private Connection(VirtualSocketAddress address, int timeout,
-            boolean fillTimeout) throws IOException {
-        addr = address.toString();
-        if (logger.isDebugEnabled()) {
-            logger.debug("connecting to " + address + ", timeout = " + timeout
-                    + " , filltimeout = " + fillTimeout);
-        }
-        socket = bt.getRemoteDevice(addr.toString()).createRfcommSocketToServiceRecord(
-                address.getUUID());
-        bt.cancelDiscovery();   // Should, according to docs, always be called before
-                                // attempting to connect.
-        socket.connect();
-        ostream = socket.getOutputStream();
-        istream = socket.getInputStream();
-        /*
-         * if(activesOutbound == null) activesOutbound = new
-         * HashMap<VirtualSocketAddress, Connection>();
-         * 
-         * if(activesOutbound.containsKey(address)){ Connection c =
-         * activesOutbound.get(address); out = c.out; in = c.in; counter =
-         * c.counter; System.out.println("Reusing connection to " + address);
-         * return; }
-         */
-        boolean ok = false;
-        // System.out.println("Connecting connection to " + address);
-        int i = 0;
-        streamConnection = null;
-        while (!ok || (streamConnection == null)) {
-            // System.out.println("Registry connecting " + address.toString());
-            try {
-                streamConnection = (StreamConnection) Connector.open(address
-                        .toString());
-                ok = true;
-            } catch (Exception e) {
-                // System.out.print(".");
-                try {
-                    Thread.sleep((int) (250 + (i * 500) * Math.random()));
-                } catch (Exception e2) {
-                }
-                ++i;
-            }
-        }
-        // socket = factory.createClientSocket(address, timeout, fillTimeout,
-        // lightConnection);
-        // socket.setTcpNoDelay(true);
-
-        out = new DataOutputStream(new BufferedOutputStream(streamConnection
-                .openOutputStream()));
-        counter = new CountInputStream(new BufferedInputStream(streamConnection
-                .openInputStream()));
-        in = new DataInputStream(counter);
-
-        logger.debug("connection to " + address + " established");
-        // System.out.println("Caching connection to " + address);
-        // activesOutbound.put(address, this);
-
-    }
-
-    /**
-     * Accept incoming connection on given serverSocket.
-     */
-    public Connection(VirtualServerSocket serverSocket) throws IOException {
-        logger.debug("waiting for incomming connection...");
-        /*
-         * if(activesInbound==null) activesInbound = new
-         * HashMap<VirtualServerSocket, LinkedList<Connection>>();
-         * 
-         * 
-         * if(activesInbound.containsKey(serverSocket)){ LinkedList<Connection>
-         * ll = activesInbound.get(serverSocket); Iterator<Connection> it =
-         * ll.iterator(); while(it.hasNext()){ Connection c = it.next();
-         * if(c.in.available()>0){ out = c.out; in = c.in; counter = c.counter;
-         * return; } }
-         * 
-         * }
-         */
-        streamConnection = serverSocket.accept();
-
-        counter = new CountInputStream(new BufferedInputStream(streamConnection
-                .openInputStream()));
-        in = new DataInputStream(counter);
-        out = new DataOutputStream(new BufferedOutputStream(streamConnection
-                .openOutputStream()));
-
-        /*
-         * if(activesInbound.containsKey(serverSocket))
-         * activesInbound.get(serverSocket).add(this); else{
-         * LinkedList<Connection> ll = new LinkedList<Connection>();
-         * ll.add(this); activesInbound.put(serverSocket, ll); }
-         */
-        logger.debug("new connection accepted");
-    }
-
-    public Connection(VirtualSocketAddress serverAddress, int timeout,
-            boolean b, VirtualSocketFactory virtualSocketFactory) throws IOException {
-        this(serverAddress, timeout, b);
+    AndroidBtSocket getSocket() {
+        return socket;
     }
 
     public DataOutputStream out() {
@@ -161,7 +98,7 @@ public final class Connection {
         if (reply == Connection.REPLY_ERROR) {
             String message = in.readUTF();
             close();
-            throw new RemoteException(message);
+            throw new IOException("Remote side: " + message);
         } else if (reply != Connection.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");
@@ -208,12 +145,7 @@ public final class Connection {
             // IGNORE
         }
 
-        try {
-            streamConnection.close();
-        } catch (IOException e) {
-            // IGNORE
-        }
-
+        socket.close();
     }
 
 }
