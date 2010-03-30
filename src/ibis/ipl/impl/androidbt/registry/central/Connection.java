@@ -9,6 +9,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,23 @@ public class Connection {
                     + " , filltimeout = " + fillTimeout);
         }
         
-        socket = new AndroidBtSocket(bt, address); 
+        if (address.getAddress().equals(bt.getAddress())) {
+            VirtualServerSocket srvr = VirtualServerSocket.findServer(address);
+            if (srvr == null) {
+                throw new IOException("Local server socket not found");
+            }
+            // Set up piped streams:
+            PipedInputStream in1 = new PipedInputStream();
+            PipedInputStream in2 = new PipedInputStream();
+            PipedOutputStream out1 = new PipedOutputStream(in1);
+            PipedOutputStream out2 = new PipedOutputStream(in2);
+            // create the client socket
+            socket = new AndroidBtSocket(in1, out2);
+            // Find the server socket corresponding to this connection ...
+            srvr.addLocalConnection(new AndroidBtSocket(in2, out1));
+        } else {
+            socket = new AndroidBtSocket(bt, address); 
+        }
 
         out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         counter = new CountInputStream(new BufferedInputStream(socket.getInputStream()));

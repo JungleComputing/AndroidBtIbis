@@ -36,7 +36,6 @@ public class AndroidBtSocketAddress {
         return out.toByteArray();        
     }
 
-
     public boolean equals(Object other) {
         if (other.getClass() == this.getClass())
             return address.equals(((AndroidBtSocketAddress) other).address)
