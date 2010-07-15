@@ -52,6 +52,12 @@ public class Connection {
         
         if (address.getAddress().equals(bt.getAddress())) {
             VirtualServerSocket srvr = VirtualServerSocket.findServer(address);
+            // Note: this assumes that the server socket is running inside the same JVM.
+            // So, if the Ibis registry server is running on a phone that runs a client
+            // as well, it must run in a separate thread, on the same JVM.
+            // Also, it is not possible to have two Ibis instances running in separate
+            // JVM instances connect to each other. TODO: fix!
+            // Maybe use socket for that? loopback?
             if (srvr == null) {
                 throw new IOException("Local server socket not found");
             }

@@ -72,7 +72,7 @@ public class AndroidBtServerSocket implements Runnable {
     }
     
     public synchronized void addLocalConnection(AndroidBtSocket sckt) {
-        while (socket == null) {
+        while (socket != null) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -98,7 +98,7 @@ public class AndroidBtServerSocket implements Runnable {
                 }
             }
             synchronized(this) {
-                while (socket == null) {
+                while (socket != null) {
                     try {
                         wait();
                     } catch (InterruptedException e) {

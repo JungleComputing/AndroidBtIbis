@@ -8,6 +8,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
@@ -87,7 +88,9 @@ public final class AndroidBtIbisStarter extends ibis.ipl.IbisStarter {
             Credentials credentials, byte[] applicationTag,
             PortType[] portTypes, String specifiedSubImplementation)
             throws IbisCreationFailedException {
+        Properties p = new Properties(userProperties);
+        p.setProperty(IbisProperties.REGISTRY_IMPLEMENTATION, "ibis.ipl.impl.androidbt.registry.central.client.Registry");
         return new AndroidBtIbis(registryEventHandler, capabilities, credentials,
-                applicationTag, portTypes, userProperties, this);
+                applicationTag, portTypes, p, this);
     }
 }
