@@ -8,8 +8,8 @@ import java.util.UUID;
 
 public class VirtualSocketAddress extends AndroidBtSocketAddress {
 
-    public VirtualSocketAddress(String addr, UUID uuid) {
-        super(addr, uuid);
+    public VirtualSocketAddress(String addr, UUID uuid, int port) {
+        super(addr, uuid, port);
     }
  
     static public VirtualSocketAddress fromBytes(byte[] source) {
@@ -17,7 +17,8 @@ public class VirtualSocketAddress extends AndroidBtSocketAddress {
         try {
             String addr = dis.readUTF();
             UUID uuid = UUID.fromString(dis.readUTF());
-            return new VirtualSocketAddress(addr, uuid);
+            int port = dis.readInt();
+            return new VirtualSocketAddress(addr, uuid, port);
         } catch(Exception e) {
             // Should not happen.
             return null;

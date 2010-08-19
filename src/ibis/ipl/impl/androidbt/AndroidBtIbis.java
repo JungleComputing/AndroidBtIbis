@@ -31,8 +31,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Properties;
@@ -131,21 +129,7 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
             int result = -1;
 
             try {
-                // Some special casing for local connections, which are not supported
-                // by bluetooth. So, we set up a two-way connection using Piped streams.
-                if (bt.getAddress().equals(idAddr.getAddress())) {
-                    // Set up piped streams:
-                    PipedInputStream in1 = new PipedInputStream();
-                    PipedInputStream in2 = new PipedInputStream();
-                    PipedOutputStream out1 = new PipedOutputStream(in1);
-                    PipedOutputStream out2 = new PipedOutputStream(in2);
-                    // create the client socket
-                    s = new AndroidBtSocket(in1, out2);
-                    // and add a socket that will be delivered by the system server.
-                    systemServer.addLocalConnection(new AndroidBtSocket(in2, out1));
-                } else {
-                    s = new AndroidBtSocket(bt, idAddr);
-                }
+                s = new AndroidBtSocket(bt, idAddr);                
                 out = new DataOutputStream(
                         new BufferedArrayOutputStream(s.getOutputStream()));
 

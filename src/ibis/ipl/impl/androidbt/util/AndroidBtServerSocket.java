@@ -3,6 +3,8 @@ package ibis.ipl.impl.androidbt.util;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -15,7 +17,9 @@ import android.bluetooth.BluetoothSocket;
 public class AndroidBtServerSocket implements Runnable {
 
     private final BluetoothAdapter localDevice; // local Bluetooth Manager
-    private final BluetoothServerSocket serverSocket;
+    private final BluetoothServerSocket btServerSocket;
+    private final ServerSocket serverSocket;
+    private final int port;
     
     private AndroidBtSocket socket = null;
     
@@ -24,6 +28,7 @@ public class AndroidBtServerSocket implements Runnable {
     private IOException ex = null;
     
     private final AndroidBtSocketAddress myAddress;
+    private boolean btAccepting;
 
     public AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
              // new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
@@ -31,12 +36,15 @@ public class AndroidBtServerSocket implements Runnable {
     }
     
     public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID) throws IOException {
-        myAddress = new AndroidBtSocketAddress(local.getAddress(), myUUID);
         localDevice = local;
-        serverSocket = localDevice.listenUsingRfcommWithServiceRecord("AndroidBtIbis", myUUID);
+        btServerSocket = localDevice.listenUsingRfcommWithServiceRecord("AndroidBtIbis", myUUID);
+        serverSocket = new ServerSocket(0);
+        port = serverSocket.getLocalPort();
+        myAddress = new AndroidBtSocketAddress(local.getAddress(), myUUID, port);
 
-        // Create a new accept thread
-        ThreadPool.createNew(this, "Bluetooth Accept Thread");
+        // Create a new accept thread, one for bluetooth, one for localhost.
+        ThreadPool.createNew(this, "Accept Thread");
+        ThreadPool.createNew(this, "Accept Thread");
     }
 
     public synchronized AndroidBtSocket accept() throws IOException {
@@ -67,7 +75,7 @@ public class AndroidBtServerSocket implements Runnable {
 
     public synchronized void close() throws java.io.IOException {
         closed = true;
-        serverSocket.close();
+        btServerSocket.close();
         notifyAll();
     }
     
@@ -84,29 +92,62 @@ public class AndroidBtServerSocket implements Runnable {
     }
 
     public void run() {
-        for (;;) {
-            BluetoothSocket sockt;
-            try {
-                sockt = serverSocket.accept();
-            } catch (IOException e) {
-                synchronized(this) {
-                    if (! closed) {
-                        ex = e;
-                        notifyAll();
-                    }
-                    return;
-                }
+        boolean iAmBtAccepter = false;
+        synchronized(this) {
+            if (! btAccepting) {
+                btAccepting = true;
+                iAmBtAccepter = true;
             }
-            synchronized(this) {
-                while (socket != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        // ignored
+        }
+        for (;;) {
+            if (iAmBtAccepter) {
+                BluetoothSocket btSockt;
+                try {
+                    btSockt = btServerSocket.accept();
+                } catch (IOException e) {
+                    synchronized(this) {
+                        if (! closed) {
+                            ex = e;
+                            notifyAll();
+                        }
+                        return;
                     }
                 }
-                socket = new AndroidBtSocket(sockt);
-                notifyAll();
+                synchronized(this) {
+                    while (socket != null) {
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                    }
+                    socket = new AndroidBtSocket(btSockt);
+                    notifyAll();
+                }
+            } else {
+                Socket sockt;
+                try {
+                    sockt = serverSocket.accept();
+                } catch (IOException e) {
+                    synchronized(this) {
+                        if (! closed) {
+                            ex = e;
+                            notifyAll();
+                        }
+                        return;
+                    }
+                }
+                synchronized(this) {
+                    while (socket != null) {
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                    }
+                    socket = new AndroidBtSocket(sockt);
+                    notifyAll();
+                }
             }
         }
     }

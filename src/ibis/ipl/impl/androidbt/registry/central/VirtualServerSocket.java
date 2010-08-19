@@ -20,8 +20,8 @@ public class VirtualServerSocket {
     public VirtualServerSocket(VirtualSocketAddress addr, int port) throws IOException {
         long least = addr.getUUID().getLeastSignificantBits() + port;
         UUID uuid = new UUID(addr.getUUID().getMostSignificantBits(), least);
-        this.address = new VirtualSocketAddress(addr.getAddress(), uuid);
         serverSocket = new AndroidBtServerSocket(BluetoothAdapter.getDefaultAdapter(), uuid);
+        this.address = new VirtualSocketAddress(addr.getBtAddress(), uuid, serverSocket.getLocalSocketAddress().getPort());
         synchronized(this.getClass()) {
             map.put(address, this);
         }

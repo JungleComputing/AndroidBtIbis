@@ -17,7 +17,7 @@ public class VirtualSocketFactory {
 
     public VirtualSocketFactory(Properties properties, UUID base) {
         this.address = new VirtualSocketAddress(BluetoothAdapter.getDefaultAdapter().getAddress(),
-                base);
+                base, 0);
         this.properties = properties;
     }
 
