@@ -20,8 +20,7 @@ public class Client {
         factory = new VirtualSocketFactory(properties, uuid);
 
         String serverAddressString = properties.getProperty(IbisProperties.SERVER_ADDRESS);
-        byte[] bytes = serverAddressString.getBytes();
-        serverAddress = VirtualSocketAddress.fromBytes(bytes);
+        serverAddress = new VirtualSocketAddress(serverAddressString);
     }
 
     public static synchronized Client getOrCreateClient(String clientID,

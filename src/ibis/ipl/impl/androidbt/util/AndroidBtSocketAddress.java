@@ -29,6 +29,16 @@ public class AndroidBtSocketAddress {
         port = is.readInt();
         is.close();
     }
+    
+    public AndroidBtSocketAddress(String s) {
+        String[] splits = s.split("/");
+        if (splits.length != 3) {
+            throw new RuntimeException("Wrong string in AndroidBtSocketAddress constructor: " + s);
+        }
+        btAddress = splits[0];
+        uuid = UUID.fromString(splits[1]);
+        port = Integer.parseInt(splits[2]);
+    }
 
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -59,5 +69,9 @@ public class AndroidBtSocketAddress {
     
     public int getPort() {
         return port;
+    }
+    
+    public String toString() {
+        return btAddress + "/" + uuid.toString() + "/" + port;
     }
 }
