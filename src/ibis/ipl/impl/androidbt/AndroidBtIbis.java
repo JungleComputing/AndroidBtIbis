@@ -25,6 +25,7 @@ import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
 import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import ibis.ipl.impl.androidbt.util.AndroidBtSocketAddress;
+import ibis.ipl.impl.androidbt.util.UIHandler;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -55,7 +56,9 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
     private boolean quiting = false;
 
     private HashMap<ibis.ipl.IbisIdentifier, AndroidBtSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, AndroidBtSocketAddress>();
-
+    
+    private final UIHandler uiHandler = new UIHandler(bt);
+    
     public AndroidBtIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
             byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
@@ -64,10 +67,18 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
         this.properties.checkProperties("ibis.ipl.impl.androidbt.",
                 new String[] { }, null, true);
-
-        if (! bt.isEnabled()) {
-            throw new IbisCreationFailedException("Bluetooth device is not enabled");
+        
+        if (bt == null) {
+            throw new IbisCreationFailedException("Device does not support bluetooth");
         }
+        
+        if (! bt.isEnabled()) {
+            uiHandler.enableBT();
+            if (! uiHandler.waitForBT()) {
+                throw new IbisCreationFailedException("Bluetooth device was not enabled");
+            }
+        }
+        
         if (bt.getScanMode() == BluetoothAdapter.SCAN_MODE_NONE) {
             throw new IbisCreationFailedException("Bluetooth device should at least be connectable");
         }

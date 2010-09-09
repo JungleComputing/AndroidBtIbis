@@ -1,5 +1,6 @@
 package ibis.ipl.impl.androidbt.registry.central.server;
 
+import ibis.ipl.IbisProperties;
 import ibis.ipl.Location;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.androidbt.registry.central.VirtualSocketFactory;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,5 +269,31 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         }
         return result;
     }
+    
+    public static void main(String[] args) {
+        TypedProperties properties = new TypedProperties();
+        properties.putAll(IbisProperties.getHardcodedProperties());
+        properties.putAll(System.getProperties());
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("--events")) {
+                properties.setProperty(ServerProperties.PRINT_EVENTS, "true");
+            } else if (args[i].equalsIgnoreCase("--errors")) {
+                properties.setProperty(ServerProperties.PRINT_ERRORS, "true");
+            } else if (args[i].equalsIgnoreCase("--stats")) {
+                properties.setProperty(ServerProperties.PRINT_STATS, "true");
+            }
+        }
+        try {
+            CentralRegistryService inst = new CentralRegistryService(properties, 
+                    new VirtualSocketFactory(properties, UUID.randomUUID()), null);
+            inst.run();     
+        } catch (IOException e) {
+            System.err.println("Unable to start BT central registry server");
+            e.printStackTrace();
+        }
+
+    }
+
 
 }
