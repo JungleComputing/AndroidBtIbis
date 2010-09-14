@@ -17,9 +17,11 @@ import android.bluetooth.BluetoothSocket;
 public class AndroidBtServerSocket implements Runnable {
 
     private final BluetoothAdapter localDevice; // local Bluetooth Manager
-    private final BluetoothServerSocket btServerSocket;
+    private BluetoothServerSocket btServerSocket;
     private final ServerSocket serverSocket;
     private final int port;
+    private final String name;
+    private final UUID uuid;
     
     private AndroidBtSocket socket = null;
     
@@ -30,15 +32,26 @@ public class AndroidBtServerSocket implements Runnable {
     private final AndroidBtSocketAddress myAddress;
     private boolean btAccepting;
 
-    public AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
+    public AndroidBtServerSocket(String name, BluetoothAdapter local) throws IOException {
              // new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
-        this(local, UUID.randomUUID());
+        this(name, local, UUID.randomUUID(), 0);
     }
     
     public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID) throws IOException {
+        this("BtIbis", local, myUUID, 0);
+    }
+    
+    public AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
+        this(local, UUID.randomUUID());
+    }
+    
+    public AndroidBtServerSocket(String name, BluetoothAdapter local, UUID myUUID, int port) throws IOException {
+        this.port = port;
+        this.name = name;
+        this.uuid = myUUID;
         localDevice = local;
-        btServerSocket = localDevice.listenUsingRfcommWithServiceRecord("AndroidBtIbis", myUUID);
-        serverSocket = new ServerSocket(0);
+        btServerSocket = localDevice.listenUsingRfcommWithServiceRecord(name, myUUID);
+        serverSocket = new ServerSocket(port);
         port = serverSocket.getLocalPort();
         myAddress = new AndroidBtSocketAddress(local.getAddress(), myUUID, port);
 
@@ -112,6 +125,17 @@ public class AndroidBtServerSocket implements Runnable {
                         }
                         return;
                     }
+                }
+                // Unlike TCP sockets, only one connection is accepted per channel. So,
+                // immediately create a new one. TODO: is this reasonable? Or should we
+                // multiplex all traffic over a single connection?
+                try {
+                    btServerSocket.close();
+                    btServerSocket = localDevice.listenUsingRfcommWithServiceRecord(name, uuid);
+                } catch(IOException e) {
+                    System.err.println("Oops: " + e);
+                    e.printStackTrace(System.err);
+                    // TODO: what now?
                 }
                 synchronized(this) {
                     while (socket != null) {

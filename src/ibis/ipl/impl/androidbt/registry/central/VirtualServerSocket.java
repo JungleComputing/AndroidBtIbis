@@ -6,7 +6,6 @@ import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
 
@@ -18,10 +17,10 @@ public class VirtualServerSocket {
             = new HashMap<VirtualSocketAddress, VirtualServerSocket>();
     
     public VirtualServerSocket(VirtualSocketAddress addr, int port) throws IOException {
-        long least = addr.getUUID().getLeastSignificantBits() + port;
-        UUID uuid = new UUID(addr.getUUID().getMostSignificantBits(), least);
-        serverSocket = new AndroidBtServerSocket(BluetoothAdapter.getDefaultAdapter(), uuid);
-        this.address = new VirtualSocketAddress(addr.getBtAddress(), uuid, serverSocket.getLocalSocketAddress().getPort());
+        serverSocket = new AndroidBtServerSocket("AndroidBTRegistry",
+                BluetoothAdapter.getDefaultAdapter(), addr.getUUID(), port);
+        this.address = new VirtualSocketAddress(addr.getBtAddress(), addr.getUUID(),
+                serverSocket.getLocalSocketAddress().getPort());
         synchronized(this.getClass()) {
             map.put(address, this);
         }

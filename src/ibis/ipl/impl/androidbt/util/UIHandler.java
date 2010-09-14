@@ -1,5 +1,7 @@
 package ibis.ipl.impl.androidbt.util;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,6 +9,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+/**
+ * Utility to enable bluetooth and do discovery.
+ */
 public class UIHandler extends Activity {
     
     private static final int ENABLE = 1;
@@ -14,6 +19,7 @@ public class UIHandler extends Activity {
     private boolean haveResult = false;
     private boolean enabled = false;
     private boolean discoveryDone = false;
+    private ArrayList<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
     
     private final BluetoothAdapter bt;
     
@@ -77,6 +83,15 @@ public class UIHandler extends Activity {
 
         // Request discover from BluetoothAdapter
         bt.startDiscovery();
+        synchronized(devices) {
+            while (! discoveryDone) {
+                try {
+                    devices.wait();
+                } catch(Throwable e) {
+                    // ignored
+                }
+            }
+        }
     }
     
     // The BroadcastReceiver that listens for discovered devices.
@@ -88,15 +103,14 @@ public class UIHandler extends Activity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if ("BT-registry".equals(device.getName())) {
-                    // Found registry.
-                    bt.cancelDiscovery();
-                    discoveryDone = true;
-                    
-                }
+                devices.add(device);
+
             // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                discoveryDone = true;
+                synchronized(devices) {
+                    discoveryDone = true;
+                    devices.notifyAll();
+                }
             }
         }
     };

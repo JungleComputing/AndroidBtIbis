@@ -82,9 +82,6 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         handler = new ServerConnectionHandler(this, socketFactory, policy);
 
         ThreadPool.createNew(this, "Central Registry Service");
-
-        logger.debug("Started Central Registry service on virtual port "
-                + Protocol.VIRTUAL_PORT);
     }
 
     synchronized Pool getPool(String poolName) {
@@ -292,8 +289,6 @@ public final class CentralRegistryService extends Thread implements Service, Reg
             System.err.println("Unable to start BT central registry server");
             e.printStackTrace();
         }
-
     }
-
-
 }
+
