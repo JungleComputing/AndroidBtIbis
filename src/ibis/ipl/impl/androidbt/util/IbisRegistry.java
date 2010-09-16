@@ -1,12 +1,15 @@
 package ibis.ipl.impl.androidbt.util;
 
-import ibis.ipl.IbisFactory;
+// import ibis.ipl.IbisFactory;
 import ibis.ipl.impl.androidbt.registry.central.VirtualSocketFactory;
 import ibis.ipl.impl.androidbt.registry.central.client.Registry;
 import ibis.ipl.impl.androidbt.registry.central.server.CentralRegistryService;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -14,6 +17,9 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class IbisRegistry {
 
@@ -33,15 +39,16 @@ public class IbisRegistry {
 
         public static final String PRINT_ERRORS = PREFIX + "print.errors";
 
-        public static final String implementationVersion;
+        // public static final String implementationVersion;
 
         public static final int DEFAULT_PORT = 8888;
         
-        public static final String DEFAULT_UUID = "2d26618601fb47c28d9f10b8ec891364";
+        public static final String DEFAULT_UUID = "2d266186-01fb-47c2-8d9f-10b8ec891364";
 
         static {
             String version = Registry.class.getPackage().getImplementationVersion();
 
+            /*
             if (version == null || version.equals("0.0")) {
                 // try to get version from IPL_MANIFEST file
                 version = IbisFactory.getManifestProperty("support.version");
@@ -52,6 +59,7 @@ public class IbisRegistry {
             }
 
             implementationVersion = version;
+            */
         }
 
         private static final String[][] propertiesList = new String[][] {
@@ -89,6 +97,8 @@ public class IbisRegistry {
             return result;
         }
     }
+    
+    private final CentralRegistryService service;
 
     public IbisRegistry(Properties properties) throws IOException {
         // get default properties.
@@ -106,9 +116,40 @@ public class IbisRegistry {
                 
         UUID uuid = UUID.fromString(typedProperties.getProperty(RegistryProperties.MYUUID));
         VirtualSocketFactory factory = new VirtualSocketFactory(typedProperties, uuid);
-        new CentralRegistryService(typedProperties, factory, null);
+        service = new CentralRegistryService(typedProperties, factory, null);
         if (logger.isDebugEnabled()) {
             logger.debug("Registry started");
         }
     }
+    
+    public String getAddress() {
+        return service.getAddress();
+    }
+
+    public Bitmap getQRCode() {
+        URL googleChartService = null;
+        try {
+            googleChartService = new URL(
+                    "http://chart.apis.google.com/chart?" + "cht=qr"
+                    + "&chs=300x300" + "&cht=qr" + "&chl=" + service.getAddress());
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        URLConnection connection = null;
+        try {
+            connection = googleChartService.openConnection();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        try {
+            return BitmapFactory.decodeStream(connection.getInputStream());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

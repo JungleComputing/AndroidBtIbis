@@ -16,7 +16,7 @@ import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.server.ServerProperties;
+// import ibis.ipl.server.ServerProperties;
 
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
@@ -89,8 +89,12 @@ final class CommunicationHandler implements Runnable {
                             + " is not specified");
         }
 
-        gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
-        tree = properties.getBooleanProperty(RegistryProperties.TREE);
+        // gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
+        // tree = properties.getBooleanProperty(RegistryProperties.TREE);
+        
+        // Only central registry on bluetooth ... 
+        gossip = false;
+        tree = false;
 
         if (gossip && tree) {
             throw new IbisConfigurationException(
@@ -226,7 +230,7 @@ final class CommunicationHandler implements Runnable {
         try {
             connection.out().writeByte(Protocol.MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_JOIN);
-            connection.out().writeUTF(ServerProperties.implementationVersion);
+            // connection.out().writeUTF(ServerProperties.implementationVersion);
 
             connection.out().writeInt(myAddress.length);
             connection.out().write(myAddress);

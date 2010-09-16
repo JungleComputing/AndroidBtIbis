@@ -23,7 +23,7 @@ public class AndroidBtSocket {
      * @throws IOException
      */
     public AndroidBtSocket(BluetoothAdapter bt, AndroidBtSocketAddress addr) throws IOException {
-        if (bt.getAddress().equals(addr.getBtAddress())) {
+        if (bt == null || bt.getAddress().equals(addr.getBtAddress())) {
             // Same host, so we have to set up a local connection. We use the
             // loopback device for that.
             socket = new Socket(InetAddress.getLocalHost(), addr.getPort());

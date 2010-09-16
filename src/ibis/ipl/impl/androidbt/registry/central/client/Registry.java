@@ -504,5 +504,9 @@ public final class Registry extends ibis.ipl.registry.Registry {
     public IbisIdentifier getRandomPoolMember() {
         return pool.getRandomMember().getIbis();
     }
+        
+    public String[] wonElections() {
+        return pool.wonElections(identifier);
+    }
 
 }

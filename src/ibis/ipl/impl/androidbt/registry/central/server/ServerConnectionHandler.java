@@ -10,7 +10,7 @@ import ibis.ipl.impl.androidbt.registry.central.VirtualSocketFactory;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
-import ibis.ipl.server.ServerProperties;
+// import ibis.ipl.server.ServerProperties;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -58,6 +58,7 @@ final class ServerConnectionHandler implements Runnable {
 
         // long start = System.currentTimeMillis();
 
+        /*
         String version = ServerProperties.implementationVersion;
 
         String peerVersion = connection.in().readUTF();
@@ -66,6 +67,7 @@ final class ServerConnectionHandler implements Runnable {
             throw new IOException("Wrong ipl server version in join: "
                     + peerVersion + ", should be " + version);
         }
+        */
 
         int length = connection.in().readInt();
         if (length < 0) {
@@ -500,5 +502,9 @@ final class ServerConnectionHandler implements Runnable {
                         + maxNrOfThreads);
             }
         }
+    }
+
+    public String getAddress() {
+        return serverSocket.getLocalSocketAddress().toString();
     }
 }

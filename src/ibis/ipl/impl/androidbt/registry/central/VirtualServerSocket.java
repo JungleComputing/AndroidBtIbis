@@ -1,7 +1,6 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
 import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
-import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,7 +16,7 @@ public class VirtualServerSocket {
             = new HashMap<VirtualSocketAddress, VirtualServerSocket>();
     
     public VirtualServerSocket(VirtualSocketAddress addr, int port) throws IOException {
-        serverSocket = new AndroidBtServerSocket("AndroidBTRegistry",
+        serverSocket = new AndroidBtServerSocket(
                 BluetoothAdapter.getDefaultAdapter(), addr.getUUID(), port);
         this.address = new VirtualSocketAddress(addr.getBtAddress(), addr.getUUID(),
                 serverSocket.getLocalSocketAddress().getPort());
@@ -28,10 +27,6 @@ public class VirtualServerSocket {
     
     AndroidBtServerSocket getServerSocket() {
         return serverSocket;
-    }
-
-    public void addLocalConnection(AndroidBtSocket sckt) {
-        serverSocket.addLocalConnection(sckt);
     }
 
     public void close() throws IOException {

@@ -14,10 +14,17 @@ public class VirtualSocketFactory {
     
     private Properties properties;
     private final VirtualSocketAddress address;
+    
+    private final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
     public VirtualSocketFactory(Properties properties, UUID base) {
-        this.address = new VirtualSocketAddress(BluetoothAdapter.getDefaultAdapter().getAddress(),
+        if (adapter == null) {
+            this.address = new VirtualSocketAddress(null, base, 0);
+            // throw new Error("Bluetooth device not supported");
+        } else {
+            this.address = new VirtualSocketAddress(adapter.getAddress(),
                 base, 0);
+        }
         this.properties = properties;
     }
 

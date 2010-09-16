@@ -290,5 +290,9 @@ public final class CentralRegistryService extends Thread implements Service, Reg
             e.printStackTrace();
         }
     }
+
+    public String getAddress() {
+        return handler.getAddress();
+    }
 }
 

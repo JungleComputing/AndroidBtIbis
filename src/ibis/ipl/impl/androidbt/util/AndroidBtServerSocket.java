@@ -20,7 +20,6 @@ public class AndroidBtServerSocket implements Runnable {
     private BluetoothServerSocket btServerSocket;
     private final ServerSocket serverSocket;
     private final int port;
-    private final String name;
     private final UUID uuid;
     
     private AndroidBtSocket socket = null;
@@ -32,28 +31,28 @@ public class AndroidBtServerSocket implements Runnable {
     private final AndroidBtSocketAddress myAddress;
     private boolean btAccepting;
 
-    public AndroidBtServerSocket(String name, BluetoothAdapter local) throws IOException {
-             // new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
-        this(name, local, UUID.randomUUID(), 0);
-    }
-    
-    public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID) throws IOException {
-        this("BtIbis", local, myUUID, 0);
-    }
-    
     public AndroidBtServerSocket(BluetoothAdapter local) throws IOException {
+             // new UUID(0x2d26618601fb47c2L, 0x8d9f10b8ec891363L);
         this(local, UUID.randomUUID());
     }
     
-    public AndroidBtServerSocket(String name, BluetoothAdapter local, UUID myUUID, int port) throws IOException {
+    public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID) throws IOException {
+        this(local, myUUID, 0);
+    }
+    
+    public AndroidBtServerSocket(BluetoothAdapter local, UUID myUUID, int port) throws IOException {
         this.port = port;
-        this.name = name;
         this.uuid = myUUID;
         localDevice = local;
-        btServerSocket = localDevice.listenUsingRfcommWithServiceRecord(name, myUUID);
-        serverSocket = new ServerSocket(port);
+        if (local != null) {
+            btServerSocket = localDevice.listenUsingRfcommWithServiceRecord("Ibis", myUUID);
+        } else {
+            btServerSocket = null;
+        }
+        // serverSocket = new ServerSocket(port);
+        serverSocket = new ServerSocket(0);
         port = serverSocket.getLocalPort();
-        myAddress = new AndroidBtSocketAddress(local.getAddress(), myUUID, port);
+        myAddress = new AndroidBtSocketAddress(local == null ? null : local.getAddress(), myUUID, port);
 
         // Create a new accept thread, one for bluetooth, one for localhost.
         ThreadPool.createNew(this, "Accept Thread");
@@ -87,23 +86,20 @@ public class AndroidBtServerSocket implements Runnable {
     }
 
     public synchronized void close() throws java.io.IOException {
+        if (closed) {
+            return;
+        }
         closed = true;
-        btServerSocket.close();
-        notifyAll();
+        try {
+            if (btServerSocket != null) {
+                btServerSocket.close();
+            }
+            serverSocket.close();
+        } finally {
+            notifyAll();
+        }
     }
     
-    public synchronized void addLocalConnection(AndroidBtSocket sckt) {
-        while (socket != null) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // ignored
-            }
-        }
-        socket = sckt;
-        notifyAll();
-    }
-
     public void run() {
         boolean iAmBtAccepter = false;
         synchronized(this) {
@@ -111,6 +107,9 @@ public class AndroidBtServerSocket implements Runnable {
                 btAccepting = true;
                 iAmBtAccepter = true;
             }
+        }
+        if (iAmBtAccepter && btServerSocket == null) {
+            return;
         }
         for (;;) {
             if (iAmBtAccepter) {
@@ -131,7 +130,7 @@ public class AndroidBtServerSocket implements Runnable {
                 // multiplex all traffic over a single connection?
                 try {
                     btServerSocket.close();
-                    btServerSocket = localDevice.listenUsingRfcommWithServiceRecord(name, uuid);
+                    btServerSocket = localDevice.listenUsingRfcommWithServiceRecord("Ibis", uuid);
                 } catch(IOException e) {
                     System.err.println("Oops: " + e);
                     e.printStackTrace(System.err);
@@ -153,6 +152,8 @@ public class AndroidBtServerSocket implements Runnable {
                 try {
                     sockt = serverSocket.accept();
                 } catch (IOException e) {
+                    System.err.println("accept gave exception");
+                    e.printStackTrace(System.err);
                     synchronized(this) {
                         if (! closed) {
                             ex = e;
@@ -161,6 +162,7 @@ public class AndroidBtServerSocket implements Runnable {
                         return;
                     }
                 }
+                System.err.println("We got a succesful accept!");
                 synchronized(this) {
                     while (socket != null) {
                         try {
@@ -169,7 +171,9 @@ public class AndroidBtServerSocket implements Runnable {
                             // ignored
                         }
                     }
+                    System.err.println("Creating AndroisBtSocket ...");
                     socket = new AndroidBtSocket(sockt);
+                    System.err.println("Notifying ...");
                     notifyAll();
                 }
             }

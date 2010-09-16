@@ -8,13 +8,12 @@
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
     <property name="doc" location="doc" />
-    <property name="external" location="external" />
     <property name="jar" location="${lib}/AndroidBtIbis.jar" />
 
     <property name="java.debug.value" value="true" />
 
     <path id="external_jars">
-	<fileset dir="${external}">
+	<fileset dir="${lib}">
 	    <include name="*.jar" />
 	</fileset>
     </path>
@@ -25,10 +24,17 @@
 
 	<!-- Create the build directory structure used by compile -->
 	<mkdir dir="${tmp}" />
-	<mkdir dir="${lib}/include" />
     </target>
 
-    <target name="compile" depends="init" description="compile the source ">
+    <!-- Copy external libraries to lib directory -->
+    <target name="copy-external">
+	<mkdir dir="${lib}" />
+        <copy todir="lib">
+            <fileset dir="external" includes="*.jar" />
+        </copy>
+    </target>
+
+    <target name="compile" depends="init,copy-external" description="compile the source ">
 	<!-- Compile the java code from ${src} into ${tmp} -->
 	<javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5">
 	    <classpath refid="external_jars" />
@@ -45,8 +51,22 @@
 	    <fileset dir="${tmp}" includes="${androidbt.files}" />
 	</checksum>
 
-	<!-- Create the distribution directory -->
-	<mkdir dir="${lib}" />
+	<mkdir dir="ipltmp" />
+	<unjar src="external/ipl-2.2.jar" dest="ipltmp" />
+
+	<echo file="ipltmp/ibis/ipl/IPL_MANIFEST" append="true">
+            implementations=smartsockets,tcp,nio,dummy,lrmc,androidBt
+
+            #androidBt
+            androidBt.starter.class=ibis.ipl.impl.androidbt.AndroidBtIbisStarter
+            androidBt.ipl.version=2.2
+            androidBt.version=${androidbt.checksum}
+        </echo>
+
+	<jar destfile="${lib}/ipl-2.2.jar">
+	    <fileset dir="ipltmp"/>
+	</jar>
+	<delete dir="ipltmp" />
 
 	<!-- Put everything in ${tmp} into the jar file -->
 	<jar destfile="${jar}">
@@ -55,7 +75,7 @@
 		<attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.androidbt.AndroidBtIbisStarter"/>
 		<attribute name="Ibis-IPL-Version" value="2.2"/>
 		<attribute name="Ibis-NickName" value="androidBt"/>
-		<attribute name="Ibis-Implementation-Version" value="${mpi.checksum}" />
+		<attribute name="Ibis-Implementation-Version" value="${androidbt.checksum}" />
 	    </manifest>
 	</jar>
 

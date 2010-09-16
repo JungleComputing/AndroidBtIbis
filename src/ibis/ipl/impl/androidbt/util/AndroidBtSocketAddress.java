@@ -16,7 +16,7 @@ public class AndroidBtSocketAddress {
     private final int port;
 
     public AndroidBtSocketAddress(String fulladdress, UUID uuid, int port) {
-    	btAddress = fulladdress;
+    	btAddress = fulladdress == null ? "" : fulladdress;
     	this.uuid = uuid;
     	this.port = port;
     }
@@ -51,12 +51,11 @@ public class AndroidBtSocketAddress {
     }
 
     public boolean equals(Object other) {
-        if (other.getClass() == this.getClass())
-            return btAddress.equals(((AndroidBtSocketAddress) other).btAddress)
-                    && uuid.equals(((AndroidBtSocketAddress) other).uuid)
-                    && port == ((AndroidBtSocketAddress) other).port;
-        else
-            return false;
+        if (other.getClass() == this.getClass()) {
+            AndroidBtSocketAddress o = (AndroidBtSocketAddress) other;
+            return (port == o.port && uuid.equals(o.uuid) && btAddress.equals(o.btAddress));
+        }
+        return false;
     }
     
     public String getBtAddress() {
