@@ -68,19 +68,18 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
         this.properties.checkProperties("ibis.ipl.impl.androidbt.",
                 new String[] { }, null, true);
         
-        if (bt == null) {
-            throw new IbisCreationFailedException("Device does not support bluetooth");
-        }
-        
-        if (! bt.isEnabled()) {
-            uiHandler.enableBT();
-            if (! uiHandler.waitForBT()) {
-                throw new IbisCreationFailedException("Bluetooth device was not enabled");
+        if (bt != null) {
+
+            if (! bt.isEnabled()) {
+                uiHandler.enableBT();
+                if (! uiHandler.waitForBT()) {
+                    throw new IbisCreationFailedException("Bluetooth device was not enabled");
+                }
             }
-        }
-        
-        if (bt.getScanMode() == BluetoothAdapter.SCAN_MODE_NONE) {
-            throw new IbisCreationFailedException("Bluetooth device should at least be connectable");
+
+            if (bt.getScanMode() == BluetoothAdapter.SCAN_MODE_NONE) {
+                throw new IbisCreationFailedException("Bluetooth device should at least be connectable");
+            }
         }
         // Create a new accept thread
         ThreadPool.createNew(this, "BtIbis Accept Thread");

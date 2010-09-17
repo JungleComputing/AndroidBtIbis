@@ -1,6 +1,6 @@
 package ibis.ipl.impl.androidbt.util;
 
-// import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.impl.androidbt.registry.central.VirtualSocketFactory;
 import ibis.ipl.impl.androidbt.registry.central.client.Registry;
 import ibis.ipl.impl.androidbt.registry.central.server.CentralRegistryService;
@@ -39,7 +39,7 @@ public class IbisRegistry {
 
         public static final String PRINT_ERRORS = PREFIX + "print.errors";
 
-        // public static final String implementationVersion;
+        public static final String implementationVersion;
 
         public static final int DEFAULT_PORT = 8888;
         
@@ -48,7 +48,7 @@ public class IbisRegistry {
         static {
             String version = Registry.class.getPackage().getImplementationVersion();
 
-            /*
+
             if (version == null || version.equals("0.0")) {
                 // try to get version from IPL_MANIFEST file
                 version = IbisFactory.getManifestProperty("support.version");
@@ -59,7 +59,6 @@ public class IbisRegistry {
             }
 
             implementationVersion = version;
-            */
         }
 
         private static final String[][] propertiesList = new String[][] {
