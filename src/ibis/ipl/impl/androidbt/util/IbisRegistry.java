@@ -121,6 +121,10 @@ public class IbisRegistry {
         }
     }
     
+    public void end(long deadline) {
+        service.end(deadline);
+    }
+    
     public String getAddress() {
         return service.getAddress();
     }
