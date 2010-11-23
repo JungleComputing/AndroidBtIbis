@@ -1,6 +1,7 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.androidbt.util.AdaptorFinder;
 import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import ibis.ipl.support.CountInputStream;
 
@@ -20,7 +21,7 @@ public class Connection {
     private static final Logger logger = LoggerFactory
             .getLogger(Connection.class);
 
-    private BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();  
+    private static final BluetoothAdapter bt = AdaptorFinder.getBluetoothAdaptor();  
     private VirtualSocketAddress addr;
     private final DataOutputStream out;
     private final DataInputStream in;

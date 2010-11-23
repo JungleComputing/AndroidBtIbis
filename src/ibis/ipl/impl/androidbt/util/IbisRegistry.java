@@ -115,6 +115,7 @@ public class IbisRegistry {
                 
         UUID uuid = UUID.fromString(typedProperties.getProperty(RegistryProperties.MYUUID));
         VirtualSocketFactory factory = new VirtualSocketFactory(typedProperties, uuid);
+        
         service = new CentralRegistryService(typedProperties, factory, null);
         if (logger.isDebugEnabled()) {
             logger.debug("Registry started");

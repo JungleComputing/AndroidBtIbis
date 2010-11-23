@@ -11,11 +11,16 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Bluetooth accept server socket.
  */
 public class AndroidBtServerSocket implements Runnable {
 
+    private static final Logger log = LoggerFactory.getLogger(AndroidBtServerSocket.class);
+    
     private final BluetoothAdapter localDevice; // local Bluetooth Manager
     private BluetoothServerSocket btServerSocket;
     private final ServerSocket serverSocket;
@@ -49,10 +54,17 @@ public class AndroidBtServerSocket implements Runnable {
         } else {
             btServerSocket = null;
         }
+        if (log.isDebugEnabled()) {
+            log.debug("LocalBlueToothAdaptor: " + (local == null ? "null" : local.getAddress()));
+        }
         // serverSocket = new ServerSocket(port);
         serverSocket = new ServerSocket(0);
         port = serverSocket.getLocalPort();
         myAddress = new AndroidBtSocketAddress(local == null ? null : local.getAddress(), myUUID, port);
+        
+        if (log.isDebugEnabled()) {
+            log.debug("myAddress: " + myAddress);
+        }
 
         // Create a new accept thread, one for bluetooth, one for localhost.
         ThreadPool.createNew(this, "Accept Thread");

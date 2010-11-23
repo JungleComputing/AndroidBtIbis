@@ -22,10 +22,11 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.ipl.impl.androidbt.util.AdaptorFinder;
 import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
 import ibis.ipl.impl.androidbt.util.AndroidBtSocket;
 import ibis.ipl.impl.androidbt.util.AndroidBtSocketAddress;
-import ibis.ipl.impl.androidbt.util.UIHandler;
+// import ibis.ipl.impl.androidbt.util.UIHandler;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -51,13 +52,13 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
     private AndroidBtSocketAddress myAddress;
     
-    private BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();
+    private static final BluetoothAdapter bt = AdaptorFinder.getBluetoothAdaptor();
 
     private boolean quiting = false;
 
     private HashMap<ibis.ipl.IbisIdentifier, AndroidBtSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, AndroidBtSocketAddress>();
     
-    private final UIHandler uiHandler = new UIHandler(bt);
+    // private final UIHandler uiHandler = new UIHandler(bt);
     
     public AndroidBtIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
@@ -71,10 +72,10 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
         if (bt != null) {
 
             if (! bt.isEnabled()) {
-                uiHandler.enableBT();
-                if (! uiHandler.waitForBT()) {
+                // uiHandler.enableBT();
+                // if (! uiHandler.waitForBT()) {
                     throw new IbisCreationFailedException("Bluetooth device was not enabled");
-                }
+                // }
             }
 
             if (bt.getScanMode() == BluetoothAdapter.SCAN_MODE_NONE) {
@@ -86,6 +87,10 @@ public final class AndroidBtIbis extends ibis.ipl.impl.Ibis implements Runnable,
     }
 
     protected byte[] getData() throws IOException {
+	
+	if (logger.isDebugEnabled()) {
+	    logger.debug("getData: bt = " + (bt == null ? "null" : bt.getAddress()));
+	}
 
         systemServer = new AndroidBtServerSocket(bt);
         myAddress = systemServer.getLocalSocketAddress();

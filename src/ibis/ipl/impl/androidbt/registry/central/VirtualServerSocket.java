@@ -1,23 +1,27 @@
 package ibis.ipl.impl.androidbt.registry.central;
 
+import ibis.ipl.impl.androidbt.util.AdaptorFinder;
 import ibis.ipl.impl.androidbt.util.AndroidBtServerSocket;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.bluetooth.BluetoothAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VirtualServerSocket {
     
+    private static final Logger log = LoggerFactory.getLogger(VirtualServerSocket.class);
+        
     private final AndroidBtServerSocket serverSocket;
     private final VirtualSocketAddress address;
     private static final Map<VirtualSocketAddress, VirtualServerSocket> map
             = new HashMap<VirtualSocketAddress, VirtualServerSocket>();
     
     public VirtualServerSocket(VirtualSocketAddress addr, int port) throws IOException {
-        serverSocket = new AndroidBtServerSocket(
-                BluetoothAdapter.getDefaultAdapter(), addr.getUUID(), port);
+        serverSocket = new AndroidBtServerSocket(AdaptorFinder.getBluetoothAdaptor(),
+                addr.getUUID(), port);
         this.address = new VirtualSocketAddress(addr.getBtAddress(), addr.getUUID(),
                 serverSocket.getLocalSocketAddress().getPort());
         synchronized(this.getClass()) {
