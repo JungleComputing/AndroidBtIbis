@@ -1,0 +1,3 @@
+- enabling bluetooth.
+- check bonding of devices before connecting. Should be automatic,
+  but for some reason it is not.

@@ -1,13 +1,17 @@
 package ibis.ipl.impl.androidbt.util;
 
 import android.bluetooth.BluetoothAdapter;
-import android.os.Looper;
+import android.os.HandlerThread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AdaptorFinder extends Thread {
+public class AdaptorFinder extends HandlerThread {
     
+    public AdaptorFinder() {
+	super("Adaptor Handler thread");
+    }
+
     private static final Logger log = LoggerFactory.getLogger(AdaptorFinder.class);
     
     private static BluetoothAdapter bt = null;
@@ -48,8 +52,9 @@ public class AdaptorFinder extends Thread {
 	}
     }
     
-    public void run() {
-	Looper.prepare();
+    protected void onLooperPrepared() {
+	// Funny stuff, this. Apparently, getDefaultAdapter() must be called from a
+	// thread that has a looper. So, this is a handler thread.
 	BluetoothAdapter x = BluetoothAdapter.getDefaultAdapter();
 	if (log.isDebugEnabled()) {
 	    log.debug("BT adres = " + x.getAddress());
@@ -59,6 +64,5 @@ public class AdaptorFinder extends Thread {
 	    bt_done = true;
 	    AdaptorFinder.class.notifyAll();
 	}
-	Looper.myLooper().quit();
     }
 }

@@ -1,15 +1,25 @@
 package ibis.ipl.impl.androidbt.util;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AndroidBtSocket {
+    
+    private static final Logger log = LoggerFactory.getLogger(AndroidBtSocket.class);
+    
     private BluetoothSocket btSocket = null;
     private Socket socket = null;
     OutputStream ostream;
@@ -30,11 +40,38 @@ public class AndroidBtSocket {
             ostream = socket.getOutputStream();
             istream = socket.getInputStream();
         } else {
-            btSocket = bt.getRemoteDevice(addr.getBtAddress()).createRfcommSocketToServiceRecord(
-                    addr.getUUID());
-            bt.cancelDiscovery();   // Should, according to docs, always be called before
-            // attempting to connect.
+            if (log.isDebugEnabled()) {
+        	log.debug("Connecting to Remote device, addr = " + addr);
+            }
+            BluetoothDevice remote = bt.getRemoteDevice(addr.getBtAddress());
+            if (log.isDebugEnabled()) {
+        	log.debug("Bonding state of " + remote.getAddress() + " + is " + remote.getBondState());
+            }
+            btSocket = remote.createRfcommSocketToServiceRecord(addr.getUUID());
+
+            if (log.isDebugEnabled()) {
+        	log.debug("Got first socket ...");
+            }
+            try {
+        	bt.cancelDiscovery();   // Should, according to docs, always be called before
+        				// attempting to connect.
+        				// But this needs BLUETOOTH_ADMIN. Ignore exception if not set.
+            } catch(Throwable e) {
+        	// ignored
+            }
             btSocket.connect();
+            if (log.isDebugEnabled()) {
+        	log.debug("First socket Connected!");
+            }
+            DataInputStream in = new DataInputStream(new BufferedInputStream(btSocket.getInputStream()));
+            UUID uuid = UUID.fromString(in.readUTF());
+            in.close();
+            btSocket.close();
+            btSocket = remote.createRfcommSocketToServiceRecord(uuid);
+            btSocket.connect();
+            if (log.isDebugEnabled()) {
+        	log.debug("Socket Connected!");
+            }
             ostream = btSocket.getOutputStream();
             istream = btSocket.getInputStream();
         }
