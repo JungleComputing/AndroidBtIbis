@@ -15,20 +15,24 @@ public class Client {
     
     private final VirtualSocketAddress serverAddress;
     
-    private  Client(TypedProperties properties, int port, String clientID) {
+    private final String clientID;
+    
+    private  Client(String serverAddressString, TypedProperties properties, int port, String clientID) {
         UUID uuid = UUID.nameUUIDFromBytes(clientID.getBytes());
         factory = new VirtualSocketFactory(properties, uuid);
 
-        String serverAddressString = properties.getProperty(IbisProperties.SERVER_ADDRESS);
         serverAddress = new VirtualSocketAddress(serverAddressString);
+        this.clientID = clientID;
     }
 
     public static synchronized Client getOrCreateClient(String clientID,
             TypedProperties properties, int port) {
+	String serverAddressString = properties.getProperty(IbisProperties.SERVER_ADDRESS);
+	clientID = serverAddressString + "--" + clientID;
         Client result = clients.get(clientID);
 
         if (result == null) {
-            result = new Client(properties, port, clientID);
+            result = new Client(serverAddressString, properties, port, clientID);
             clients.put(clientID, result);
         }
         return result;
@@ -40,6 +44,15 @@ public class Client {
 
     public VirtualSocketAddress getServiceAddress(int virtualPort) {
         return serverAddress;
+    }
+    
+    public void end() {
+	try {
+	    factory.end();
+	} catch(Throwable e) {
+	    // ignored
+	}
+	clients.remove(clientID);
     }
 
 }

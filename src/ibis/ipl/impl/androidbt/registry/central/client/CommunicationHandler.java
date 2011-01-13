@@ -81,6 +81,8 @@ final class CommunicationHandler implements Runnable {
         this.properties = properties;
         this.pool = pool;
         this.statistics = statistics;
+        
+        System.out.println("SERVER_ADDRESS = " + properties.getProperty(IbisProperties.SERVER_ADDRESS));
 
         if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
             throw new IbisConfigurationException(
@@ -1160,6 +1162,7 @@ final class CommunicationHandler implements Runnable {
     }
 
     void end() {
+	client.end();
         try {
             serverSocket.close();
         } catch (Exception e) {

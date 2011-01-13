@@ -90,6 +90,14 @@ public final class AndroidBtIbisStarter extends ibis.ipl.IbisStarter {
             throws IbisCreationFailedException {
         Properties p = new Properties(userProperties);
         p.setProperty(IbisProperties.REGISTRY_IMPLEMENTATION, "ibis.ipl.impl.androidbt.registry.central.client.Registry");
+        
+        // The SERVER_ADDRESS system property may have been set too late in case a server is started
+        // as well. Prevent the use of an earlier one.
+        String registry = p.getProperty(IbisProperties.SERVER_ADDRESS);
+        String registry1 = System.getProperty(IbisProperties.SERVER_ADDRESS);
+        if (registry == null || ! registry.equals(registry1)) {
+            p.setProperty(IbisProperties.SERVER_ADDRESS, registry1);
+        }
         return new AndroidBtIbis(registryEventHandler, capabilities, credentials,
                 applicationTag, portTypes, p, this);
     }
