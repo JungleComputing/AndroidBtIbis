@@ -57,7 +57,7 @@ class AndroidBtReceivePort extends ReceivePort implements AndroidBtProtocol {
                             if (reader_busy || ((AndroidBtReceivePort)port).getPortMessage() != null) {
                                 continue;
                             }
-                            if (in == null) {
+                            if (closed) {
                                 return;
                             }
                             reader_busy = true;
