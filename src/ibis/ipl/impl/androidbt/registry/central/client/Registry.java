@@ -10,7 +10,6 @@ import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.support.RemoteException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -133,7 +132,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
         pool = new Pool(capabilities, properties, this, statistics);
 
-        try {
+        // try {
             communicationHandler = new CommunicationHandler(properties, pool,
                     statistics);
 
@@ -142,10 +141,10 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
             communicationHandler.bootstrap();
 
-        } catch (RemoteException e) {
+        //} catch (RemoteException e) {
             // error caused by server "complaining"
-            throw new IbisConfigurationException(e.getMessage());
-        }
+        //    throw new IbisConfigurationException(e.getMessage());
+        //}
 
         // start writing statistics
         if (statistics != null) {
