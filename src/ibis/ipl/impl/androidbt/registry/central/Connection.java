@@ -51,8 +51,8 @@ public class Connection {
 
         socket = new AndroidBtSocket(bt, address); 
 
-        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream()));
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), 4096));
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream(), 4096));
         in = new DataInputStream(counter);
 
         logger.debug("connection to " + address + " established");
@@ -60,9 +60,9 @@ public class Connection {
 
     public Connection(VirtualServerSocket serverSocket) throws IOException {        
         socket = serverSocket.getServerSocket().accept();
-        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream()));
+        counter = new CountInputStream(new BufferedInputStream(socket.getInputStream(), 4096));
         in = new DataInputStream(counter);
-        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), 4096));
 
     }
 

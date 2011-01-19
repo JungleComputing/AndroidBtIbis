@@ -63,7 +63,7 @@ public class AndroidBtSocket {
             if (log.isDebugEnabled()) {
         	log.debug("First socket Connected!");
             }
-            DataInputStream in = new DataInputStream(new BufferedInputStream(btSocket.getInputStream()));
+            DataInputStream in = new DataInputStream(new BufferedInputStream(btSocket.getInputStream(), 1024));
             UUID uuid = UUID.fromString(in.readUTF());
             in.close();
             btSocket.close();
@@ -72,7 +72,7 @@ public class AndroidBtSocket {
             if (log.isDebugEnabled()) {
         	log.debug("Socket Connected!");
             }
-            ostream = btSocket.getOutputStream();
+            ostream = new LimitedOutputStream(btSocket.getOutputStream(), 32768);
             istream = btSocket.getInputStream();
         }
     }
@@ -87,7 +87,7 @@ public class AndroidBtSocket {
         btSocket = sckt;
         try {
             istream = btSocket.getInputStream(); 
-            ostream = btSocket.getOutputStream();
+            ostream = new LimitedOutputStream(btSocket.getOutputStream(), 32768);
         } catch (IOException e) {
             System.err.println("Unable to open io streams");
         }

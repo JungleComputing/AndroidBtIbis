@@ -172,7 +172,7 @@ public class AndroidBtServerSocket implements Runnable {
                     log.debug("Listen to new UUID " + newUUID);
                 }
                 newServer = localDevice.listenUsingRfcommWithServiceRecord("Ibis", newUUID);
-                DataOutputStream o = new DataOutputStream(new BufferedOutputStream(btSockt.getOutputStream()));
+                DataOutputStream o = new DataOutputStream(new BufferedOutputStream(btSockt.getOutputStream(), 1024));
                 o.writeUTF(newUUID.toString());
                 o.close();
             } catch (IOException e) {
